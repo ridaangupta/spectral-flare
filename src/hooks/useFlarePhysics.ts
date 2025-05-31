@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { FlareData, FlareConfig, CursorData } from '../types/flare';
 
@@ -19,36 +18,37 @@ export const useFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareD
 
   const getSensitivityMultiplier = (sensitivity: string): number => {
     switch (sensitivity) {
-      case 'subtle': return 0.3;
-      case 'responsive': return 0.6;
-      case 'dynamic': return 1.0;
-      case 'intense': return 1.5;
-      case 'chaotic': return 2.5;
+      case 'subtle': return 0.5;
+      case 'responsive': return 1.0;
+      case 'dynamic': return 1.5;
+      case 'intense': return 2.5;
+      case 'chaotic': return 4.0;
       default: return 1.0;
     }
   };
 
   const createFlare = (id: number): FlareData => {
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
+    const margin = 100; // Keep flares away from edges
+    const x = margin + Math.random() * (window.innerWidth - margin * 2);
+    const y = margin + Math.random() * (window.innerHeight - margin * 2);
     
     return {
       id,
       x,
       y,
-      vx: (Math.random() - 0.5) * 2,
-      vy: (Math.random() - 0.5) * 2,
-      intensity: 0.3 + Math.random() * 0.7,
-      scale: 0.5 + Math.random() * 1.5,
+      vx: (Math.random() - 0.5) * 1,
+      vy: (Math.random() - 0.5) * 1,
+      intensity: 0.6 + Math.random() * 0.4, // Minimum intensity to prevent vanishing
+      scale: 0.7 + Math.random() * 1.0,
       rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 4,
+      rotationSpeed: (Math.random() - 0.5) * 2,
       colorIndex: Math.floor(Math.random() * 5),
-      sensitivity: 0.5 + Math.random() * 0.5,
-      attractionRadius: 100 + Math.random() * 200,
-      repulsionRadius: 50 + Math.random() * 50,
-      autonomy: Math.random(),
+      sensitivity: 0.7 + Math.random() * 0.3, // Higher base sensitivity
+      attractionRadius: 150 + Math.random() * 100,
+      repulsionRadius: 80 + Math.random() * 40,
+      autonomy: 0.3 + Math.random() * 0.4,
       pulsePhase: Math.random() * Math.PI * 2,
-      pulseSpeed: 0.02 + Math.random() * 0.03
+      pulseSpeed: 0.01 + Math.random() * 0.02
     };
   };
 
@@ -57,7 +57,7 @@ export const useFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareD
     const count = getFlareCount(config.density);
     const newFlares = Array.from({ length: count }, (_, i) => createFlare(i));
     setFlares(newFlares);
-  }, [config.density]);
+  }, [config.density, config.type, config.colorProfile, config.size]); // React to more config changes
 
   // Animation loop
   useEffect(() => {
@@ -70,49 +70,69 @@ export const useFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareD
         const dy = cursor.y - flare.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Cursor influence
+        // Repulsion force - ALL flares are repelled by cursor
         let newVx = flare.vx;
         let newVy = flare.vy;
         
-        if (distance < flare.attractionRadius && cursor.isMoving) {
-          const force = (1 - distance / flare.attractionRadius) * 0.5 * sensitivityMultiplier;
+        if (distance < flare.repulsionRadius && distance > 0) {
+          const repulsionForce = (1 - distance / flare.repulsionRadius) * 0.8 * sensitivityMultiplier;
           const angle = Math.atan2(dy, dx);
           
-          // Some flares are attracted, others repelled
-          const direction = flare.sensitivity > 0.7 ? 1 : -1;
-          newVx += Math.cos(angle) * force * direction * flare.sensitivity;
-          newVy += Math.sin(angle) * force * direction * flare.sensitivity;
+          // Push away from cursor
+          newVx -= Math.cos(angle) * repulsionForce;
+          newVy -= Math.sin(angle) * repulsionForce;
         }
         
-        // Autonomous movement
-        const autonomousForce = flare.autonomy * 0.1;
+        // Gentle autonomous movement to keep flares active
+        const autonomousForce = flare.autonomy * 0.05;
         newVx += (Math.random() - 0.5) * autonomousForce;
         newVy += (Math.random() - 0.5) * autonomousForce;
         
-        // Apply friction
-        newVx *= 0.95;
-        newVy *= 0.95;
+        // Apply friction to prevent excessive speed
+        newVx *= 0.92;
+        newVy *= 0.92;
         
         // Update position
         let newX = flare.x + newVx;
         let newY = flare.y + newVy;
         
-        // Bounce off edges
-        if (newX < 0 || newX > window.innerWidth) {
-          newVx *= -0.8;
-          newX = Math.max(0, Math.min(window.innerWidth, newX));
+        // Keep flares on screen with proper boundaries
+        const margin = 50;
+        const maxX = window.innerWidth - margin;
+        const maxY = window.innerHeight - margin;
+        
+        // Bounce off edges with damping
+        if (newX < margin) {
+          newX = margin;
+          newVx = Math.abs(newVx) * 0.7;
+        } else if (newX > maxX) {
+          newX = maxX;
+          newVx = -Math.abs(newVx) * 0.7;
         }
-        if (newY < 0 || newY > window.innerHeight) {
-          newVy *= -0.8;
-          newY = Math.max(0, Math.min(window.innerHeight, newY));
+        
+        if (newY < margin) {
+          newY = margin;
+          newVy = Math.abs(newVy) * 0.7;
+        } else if (newY > maxY) {
+          newY = maxY;
+          newVy = -Math.abs(newVy) * 0.7;
         }
+        
+        // Gentle force to keep flares away from edges
+        if (newX < margin * 2) newVx += 0.1;
+        if (newX > maxX - margin) newVx -= 0.1;
+        if (newY < margin * 2) newVy += 0.1;
+        if (newY > maxY - margin) newVy -= 0.1;
         
         // Update rotation
         const newRotation = flare.rotation + flare.rotationSpeed;
         
-        // Pulse effect
+        // Subtle pulse effect that doesn't make flares disappear
         const pulsePhase = flare.pulsePhase + flare.pulseSpeed;
-        const intensityMultiplier = 1 + Math.sin(pulsePhase) * 0.3;
+        const pulseIntensity = 1 + Math.sin(pulsePhase) * 0.2; // Reduced pulse range
+        
+        // Ensure minimum intensity to prevent vanishing
+        const finalIntensity = Math.max(0.4, Math.min(1, flare.intensity * pulseIntensity));
         
         return {
           ...flare,
@@ -122,7 +142,7 @@ export const useFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareD
           vy: newVy,
           rotation: newRotation,
           pulsePhase,
-          intensity: Math.min(1, flare.intensity * intensityMultiplier)
+          intensity: finalIntensity
         };
       }));
       
@@ -136,7 +156,7 @@ export const useFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareD
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [config.sensitivity, cursor]);
+  }, [config.sensitivity, cursor.x, cursor.y, cursor.isMoving]); // Optimized dependencies
 
   return flares;
 };
