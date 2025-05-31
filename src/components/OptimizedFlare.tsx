@@ -14,6 +14,35 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
   const colors = useMemo(() => getFlareColors(config.colorProfile), [config.colorProfile]);
   const baseSize = useMemo(() => getFlareSize(config.size), [config.size]);
 
+  // Define helper functions before using them
+  const getFlareBackground = (type: string, primary: string, secondary: string) => {
+    switch (type) {
+      case 'plasma':
+        return `radial-gradient(circle, ${primary} 0%, ${secondary} 40%, transparent 70%)`;
+      case 'crystal':
+        return `conic-gradient(${primary}, ${secondary}, ${primary})`;
+      case 'nebula':
+        return `radial-gradient(ellipse, ${primary} 0%, ${secondary} 30%, transparent 60%)`;
+      case 'electric':
+        return `radial-gradient(circle, ${primary} 0%, ${secondary} 20%, transparent 50%)`;
+      case 'liquid':
+        return `radial-gradient(circle, ${primary} 20%, ${secondary} 60%, transparent 80%)`;
+      default:
+        return `radial-gradient(circle, ${primary} 0%, ${secondary} 50%, transparent 70%)`;
+    }
+  };
+
+  const getFlareShape = (type: string) => {
+    switch (type) {
+      case 'plasma': return '50%';
+      case 'crystal': return '20%';
+      case 'nebula': return '60%';
+      case 'electric': return '30%';
+      case 'liquid': return '40%';
+      default: return '50%';
+    }
+  };
+
   // Viewport culling - don't render if not visible
   if (!isVisible) {
     return null;
@@ -51,35 +80,7 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
       backfaceVisibility: 'hidden' as const,
       perspective: 1000,
     };
-  }, [data, config, cursor, colors, baseSize]);
-
-  const getFlareBackground = (type: string, primary: string, secondary: string) => {
-    switch (type) {
-      case 'plasma':
-        return `radial-gradient(circle, ${primary} 0%, ${secondary} 40%, transparent 70%)`;
-      case 'crystal':
-        return `conic-gradient(${primary}, ${secondary}, ${primary})`;
-      case 'nebula':
-        return `radial-gradient(ellipse, ${primary} 0%, ${secondary} 30%, transparent 60%)`;
-      case 'electric':
-        return `radial-gradient(circle, ${primary} 0%, ${secondary} 20%, transparent 50%)`;
-      case 'liquid':
-        return `radial-gradient(circle, ${primary} 20%, ${secondary} 60%, transparent 80%)`;
-      default:
-        return `radial-gradient(circle, ${primary} 0%, ${secondary} 50%, transparent 70%)`;
-    }
-  };
-
-  const getFlareShape = (type: string) => {
-    switch (type) {
-      case 'plasma': return '50%';
-      case 'crystal': return '20%';
-      case 'nebula': return '60%';
-      case 'electric': return '30%';
-      case 'liquid': return '40%';
-      default: return '50%';
-    }
-  };
+  }, [data, config, cursor, colors, baseSize, getFlareBackground, getFlareShape]);
 
   return (
     <div
