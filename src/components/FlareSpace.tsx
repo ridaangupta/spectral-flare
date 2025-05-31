@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Switch } from './ui/switch';
 import OptimizedFlare from './OptimizedFlare';
@@ -29,26 +28,14 @@ const FlareSpace = () => {
     const viewportHeight = window.innerHeight;
 
     return flares.map(flare => {
-      let quadrantColorIndex = flare.colorIndex % 5; // Default behavior
-      
-      if (config.sortMode) {
-        // Assign color based on quadrant position
-        const halfWidth = viewportWidth / 2;
-        const halfHeight = viewportHeight / 2;
-        
-        if (flare.x < halfWidth && flare.y < halfHeight) {
-          quadrantColorIndex = 0; // Top-left
-        } else if (flare.x >= halfWidth && flare.y < halfHeight) {
-          quadrantColorIndex = 1; // Top-right
-        } else if (flare.x < halfWidth && flare.y >= halfHeight) {
-          quadrantColorIndex = 2; // Bottom-left
-        } else {
-          quadrantColorIndex = 3; // Bottom-right
-        }
-      }
+      // In sort mode, flares keep their original random color assignment
+      // In normal mode, use the original behavior
+      const flareWithColor = config.sortMode 
+        ? { ...flare } // Keep original colorIndex assigned during creation
+        : { ...flare }; // Normal mode behavior (unchanged)
 
       return {
-        flare: { ...flare, colorIndex: quadrantColorIndex },
+        flare: flareWithColor,
         isVisible: flare.x > -margin && 
                    flare.x < viewportWidth + margin && 
                    flare.y > -margin && 
@@ -85,37 +72,6 @@ const FlareSpace = () => {
     const rafId = requestAnimationFrame(measureFPS);
     return () => cancelAnimationFrame(rafId);
   }, [flares.length, visibleFlares]);
-
-  const getBackgroundStyle = () => {
-    if (!config.sortMode || !backgroundColors) {
-      return 'bg-gradient-to-br from-gray-900 via-black to-gray-800';
-    }
-
-    return {
-      background: `
-        linear-gradient(to right, 
-          ${backgroundColors[0]} 0%, 
-          ${backgroundColors[0]} 50%, 
-          ${backgroundColors[1]} 50%, 
-          ${backgroundColors[1]} 100%
-        ),
-        linear-gradient(to bottom, 
-          transparent 0%, 
-          transparent 50%, 
-          ${backgroundColors[2]} 50%, 
-          ${backgroundColors[2]} 100%
-        ),
-        linear-gradient(to bottom, 
-          transparent 0%, 
-          transparent 50%, 
-          ${backgroundColors[3]} 50%, 
-          ${backgroundColors[3]} 100%
-        )
-      `,
-      backgroundSize: '100% 100%, 50% 100%, 50% 100%',
-      backgroundPosition: '0 0, 0 0, 50% 0'
-    };
-  };
 
   return (
     <div 

@@ -11,12 +11,12 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
 
   const getFlareCount = (density: string): number => {
     switch (density) {
-      case 'minimal': return 40 + Math.floor(Math.random() * 20);
-      case 'light': return 80 + Math.floor(Math.random() * 20);
-      case 'moderate': return 120 + Math.floor(Math.random() * 20);
-      case 'dense': return 160 + Math.floor(Math.random() * 20);
-      case 'extreme': return 200 + Math.floor(Math.random() * 20);
-      default: return 120;
+      case 'minimal': return 25 + Math.floor(Math.random() * 10);
+      case 'light': return 50 + Math.floor(Math.random() * 10);
+      case 'moderate': return 75 + Math.floor(Math.random() * 10);
+      case 'dense': return 100 + Math.floor(Math.random() * 10);
+      case 'extreme': return 125 + Math.floor(Math.random() * 10);
+      default: return 75;
     }
   };
 
@@ -57,6 +57,10 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
     const x = margin + Math.random() * (window.innerWidth - margin * 2);
     const y = margin + Math.random() * (window.innerHeight - margin * 2);
     
+    // In sort mode, assign random color index (0-3 for four colors)
+    // In normal mode, use the full color range (0-4 for five colors)
+    const colorRange = config.sortMode ? 4 : 5;
+    
     return {
       id,
       x,
@@ -67,7 +71,7 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
       scale: 0.7 + Math.random() * 1.0,
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 2,
-      colorIndex: Math.floor(Math.random() * 5),
+      colorIndex: Math.floor(Math.random() * colorRange),
       sensitivity: 0.7 + Math.random() * 0.3,
       attractionRadius: 150 + Math.random() * 100,
       repulsionRadius: 80 + Math.random() * 40,
