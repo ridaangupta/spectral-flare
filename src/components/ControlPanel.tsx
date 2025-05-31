@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { FlareConfig } from '../types/flare';
+import { getSortModeColors } from '../utils/flareUtils';
 
 interface ControlPanelProps {
   config: FlareConfig;
@@ -26,14 +27,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ config, onChange }) => {
     { value: 'liquid', label: 'Liquid', desc: 'Fluid mercury-like' }
   ];
 
-  const colorOptions = [
-    { value: 'aurora', label: 'Aurora', colors: ['#00D4FF', '#0099CC', '#6B46C1'] },
-    { value: 'inferno', label: 'Inferno', colors: ['#FF4500', '#FF8C00', '#FFD700'] },
-    { value: 'cosmic', label: 'Cosmic', colors: ['#8B5CF6', '#EC4899', '#3B82F6'] },
-    { value: 'neon', label: 'Neon', colors: ['#FF1493', '#00FF7F', '#00FFFF'] },
-    { value: 'monochrome', label: 'Monochrome', colors: ['#FFFFFF', '#D1D5DB', '#6B7280'] }
-  ];
-
   const sensitivityOptions = [
     { value: 'subtle', label: 'Subtle' },
     { value: 'responsive', label: 'Responsive' },
@@ -50,7 +43,27 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ config, onChange }) => {
     { value: 'massive', label: 'Massive', size: '180-300px' }
   ];
 
-  const handleConfigChange = (key: keyof FlareConfig, value: string) => {
+  const getColorOptions = () => {
+    if (config.sortMode) {
+      return [
+        { value: 'aurora', label: 'Aurora', colors: getSortModeColors('aurora') },
+        { value: 'inferno', label: 'Inferno', colors: getSortModeColors('inferno') },
+        { value: 'cosmic', label: 'Cosmic', colors: getSortModeColors('cosmic') },
+        { value: 'neon', label: 'Neon', colors: getSortModeColors('neon') },
+        { value: 'monochrome', label: 'Monochrome', colors: getSortModeColors('monochrome') }
+      ];
+    }
+    
+    return [
+      { value: 'aurora', label: 'Aurora', colors: ['#00D4FF', '#0099CC', '#6B46C1'] },
+      { value: 'inferno', label: 'Inferno', colors: ['#FF4500', '#FF8C00', '#FFD700'] },
+      { value: 'cosmic', label: 'Cosmic', colors: ['#8B5CF6', '#EC4899', '#3B82F6'] },
+      { value: 'neon', label: 'Neon', colors: ['#FF1493', '#00FF7F', '#00FFFF'] },
+      { value: 'monochrome', label: 'Monochrome', colors: ['#FFFFFF', '#D1D5DB', '#6B7280'] }
+    ];
+  };
+
+  const handleConfigChange = (key: keyof FlareConfig, value: string | boolean) => {
     onChange({ ...config, [key]: value });
   };
 
@@ -117,7 +130,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ config, onChange }) => {
             <div className="space-y-3">
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider">Colors</h3>
               <div className="space-y-2">
-                {colorOptions.map((option) => (
+                {getColorOptions().map((option) => (
                   <button
                     key={option.value}
                     onClick={() => handleConfigChange('colorProfile', option.value)}

@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { FlareData, FlareConfig, CursorData } from '../types/flare';
-import { getFlareColors, getFlareSize } from '../utils/flareUtils';
+import { getFlareColors, getSortModeColors, getFlareSize } from '../utils/flareUtils';
 
 interface OptimizedFlareProps {
   data: FlareData;
@@ -11,7 +11,10 @@ interface OptimizedFlareProps {
 }
 
 const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, isVisible }) => {
-  const colors = useMemo(() => getFlareColors(config.colorProfile), [config.colorProfile]);
+  const colors = useMemo(() => {
+    return config.sortMode ? getSortModeColors(config.colorProfile) : getFlareColors(config.colorProfile);
+  }, [config.colorProfile, config.sortMode]);
+  
   const baseSize = useMemo(() => getFlareSize(config.size), [config.size]);
 
   // Define helper functions before using them
@@ -60,7 +63,12 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
     const sizeMultiplier = 1 + influence * 0.5;
     
     const primaryColor = colors[data.colorIndex % colors.length];
-    const secondaryColor = colors[(data.colorIndex + 1) % colors.length];
+    const secondaryColor = config.sortMode ? primaryColor : colors[(data.colorIndex + 1) % colors.length];
+    
+    // In sort mode, use fixed intensity without pulsing
+    const finalIntensity = config.sortMode 
+      ? Math.min(1, data.intensity * intensityMultiplier)
+      : Math.min(1, data.intensity * intensityMultiplier);
     
     return {
       position: 'absolute' as const,
@@ -68,7 +76,7 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
       top: data.y - (baseSize * sizeMultiplier * data.scale) / 2,
       width: baseSize * sizeMultiplier * data.scale,
       height: baseSize * sizeMultiplier * data.scale,
-      opacity: Math.min(1, data.intensity * intensityMultiplier),
+      opacity: finalIntensity,
       transform: `translate3d(0, 0, 0) rotate(${data.rotation}deg) scale(${1 + influence * 0.3})`,
       background: getFlareBackground(config.type, primaryColor, secondaryColor),
       filter: `blur(${Math.max(0, 2 - influence * 2)}px) brightness(${1 + influence * 0.5})`,
@@ -80,7 +88,7 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
       backfaceVisibility: 'hidden' as const,
       perspective: 1000,
     };
-  }, [data, config, cursor, colors, baseSize, getFlareBackground, getFlareShape]);
+  }, [data, config, cursor, colors, baseSize]);
 
   return (
     <div

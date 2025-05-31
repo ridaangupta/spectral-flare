@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FlareData, FlareConfig, CursorData } from '../types/flare';
 
@@ -89,7 +90,7 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
     const newFlares = Array.from({ length: count }, (_, i) => createFlare(i));
     setFlares(newFlares);
     updateSpatialGrid(newFlares);
-  }, [config.density, config.type, config.colorProfile, config.size, updateSpatialGrid]);
+  }, [config.density, config.type, config.colorProfile, config.size, config.sortMode, updateSpatialGrid]);
 
   // Optimized animation loop with delta time and throttling
   useEffect(() => {
@@ -107,8 +108,6 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
 
       setFlares(prevFlares => {
         const sensitivityMultiplier = getSensitivityMultiplier(config.sensitivity);
-        const cursorXSquared = cursor.x * cursor.x;
-        const cursorYSquared = cursor.y * cursor.y;
         
         const updatedFlares = prevFlares.map(flare => {
           // Use squared distance for cursor interaction
@@ -173,10 +172,10 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
           if (newY < margin * 2) newVy += 0.1 * deltaMultiplier;
           if (newY > maxY - margin) newVy -= 0.1 * deltaMultiplier;
           
-          // Update rotation and pulse
+          // Update rotation and pulse (disable pulsing in sort mode)
           const newRotation = flare.rotation + flare.rotationSpeed * deltaMultiplier;
-          const pulsePhase = flare.pulsePhase + flare.pulseSpeed * deltaMultiplier;
-          const pulseIntensity = 1 + Math.sin(pulsePhase) * 0.2;
+          const pulsePhase = config.sortMode ? flare.pulsePhase : flare.pulsePhase + flare.pulseSpeed * deltaMultiplier;
+          const pulseIntensity = config.sortMode ? 1 : 1 + Math.sin(pulsePhase) * 0.2;
           const finalIntensity = Math.max(0.4, Math.min(1, flare.intensity * pulseIntensity));
           
           return {
@@ -206,7 +205,7 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [config.sensitivity, cursor.x, cursor.y, cursor.isMoving, updateSpatialGrid]);
+  }, [config.sensitivity, config.sortMode, cursor.x, cursor.y, cursor.isMoving, updateSpatialGrid]);
 
   return flares;
 };

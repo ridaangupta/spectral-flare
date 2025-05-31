@@ -1,10 +1,12 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Switch } from './ui/switch';
 import OptimizedFlare from './OptimizedFlare';
 import ControlPanel from './ControlPanel';
 import { useOptimizedFlarePhysics } from '../hooks/useOptimizedFlarePhysics';
 import { useCursorTracking } from '../hooks/useCursorTracking';
 import { FlareConfig } from '../types/flare';
+import { getMutedBackgroundColors } from '../utils/flareUtils';
 
 const FlareSpace = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,7 +15,8 @@ const FlareSpace = () => {
     type: 'plasma',
     colorProfile: 'aurora',
     sensitivity: 'responsive',
-    size: 'standard'
+    size: 'standard',
+    sortMode: false
   });
 
   const cursor = useCursorTracking(containerRef);
@@ -21,18 +24,44 @@ const FlareSpace = () => {
 
   // Viewport culling - only render flares that are visible
   const visibleFlares = useMemo(() => {
-    const margin = 200; // Render flares slightly outside viewport
+    const margin = 200;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    return flares.map(flare => ({
-      flare,
-      isVisible: flare.x > -margin && 
-                 flare.x < viewportWidth + margin && 
-                 flare.y > -margin && 
-                 flare.y < viewportHeight + margin
-    }));
-  }, [flares]);
+    return flares.map(flare => {
+      let quadrantColorIndex = flare.colorIndex % 5; // Default behavior
+      
+      if (config.sortMode) {
+        // Assign color based on quadrant position
+        const halfWidth = viewportWidth / 2;
+        const halfHeight = viewportHeight / 2;
+        
+        if (flare.x < halfWidth && flare.y < halfHeight) {
+          quadrantColorIndex = 0; // Top-left
+        } else if (flare.x >= halfWidth && flare.y < halfHeight) {
+          quadrantColorIndex = 1; // Top-right
+        } else if (flare.x < halfWidth && flare.y >= halfHeight) {
+          quadrantColorIndex = 2; // Bottom-left
+        } else {
+          quadrantColorIndex = 3; // Bottom-right
+        }
+      }
+
+      return {
+        flare: { ...flare, colorIndex: quadrantColorIndex },
+        isVisible: flare.x > -margin && 
+                   flare.x < viewportWidth + margin && 
+                   flare.y > -margin && 
+                   flare.y < viewportHeight + margin
+      };
+    });
+  }, [flares, config.sortMode]);
+
+  // Background quadrants for sort mode
+  const backgroundColors = useMemo(() => {
+    if (!config.sortMode) return null;
+    return getMutedBackgroundColors(config.colorProfile);
+  }, [config.sortMode, config.colorProfile]);
 
   // Performance monitoring (optional - remove in production)
   useEffect(() => {
@@ -57,16 +86,64 @@ const FlareSpace = () => {
     return () => cancelAnimationFrame(rafId);
   }, [flares.length, visibleFlares]);
 
+  const getBackgroundStyle = () => {
+    if (!config.sortMode || !backgroundColors) {
+      return 'bg-gradient-to-br from-gray-900 via-black to-gray-800';
+    }
+
+    return {
+      background: `
+        linear-gradient(to right, 
+          ${backgroundColors[0]} 0%, 
+          ${backgroundColors[0]} 50%, 
+          ${backgroundColors[1]} 50%, 
+          ${backgroundColors[1]} 100%
+        ),
+        linear-gradient(to bottom, 
+          transparent 0%, 
+          transparent 50%, 
+          ${backgroundColors[2]} 50%, 
+          ${backgroundColors[2]} 100%
+        ),
+        linear-gradient(to bottom, 
+          transparent 0%, 
+          transparent 50%, 
+          ${backgroundColors[3]} 50%, 
+          ${backgroundColors[3]} 100%
+        )
+      `,
+      backgroundSize: '100% 100%, 50% 100%, 50% 100%',
+      backgroundPosition: '0 0, 0 0, 50% 0'
+    };
+  };
+
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 overflow-hidden cursor-none"
+      className={`relative w-full h-screen overflow-hidden cursor-none ${!config.sortMode ? 'bg-gradient-to-br from-gray-900 via-black to-gray-800' : ''}`}
       style={{
-        // Enable hardware acceleration for the container
         willChange: 'transform',
-        transform: 'translate3d(0, 0, 0)'
+        transform: 'translate3d(0, 0, 0)',
+        ...(config.sortMode && backgroundColors ? {
+          background: `
+            conic-gradient(from 0deg at 50% 50%, 
+              ${backgroundColors[0]} 0deg 90deg,
+              ${backgroundColors[1]} 90deg 180deg,
+              ${backgroundColors[2]} 180deg 270deg,
+              ${backgroundColors[3]} 270deg 360deg
+            )`
+        } : {})
       }}
     >
+      {/* Sort Mode Toggle */}
+      <div className="absolute top-4 right-4 z-50 flex items-center space-x-3 bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+        <span className="text-white text-sm font-medium">Sort Mode</span>
+        <Switch
+          checked={config.sortMode}
+          onCheckedChange={(checked) => setConfig(prev => ({ ...prev, sortMode: checked }))}
+        />
+      </div>
+
       {/* Optimized flares with viewport culling */}
       {visibleFlares.map(({ flare, isVisible }) => (
         <OptimizedFlare 
