@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { RotateCcw } from 'lucide-react';
 import { Switch } from './ui/switch';
+import { Button } from './ui/button';
 import OptimizedFlare from './OptimizedFlare';
 import ControlPanel from './ControlPanel';
 import SortModeTutorial from './SortModeTutorial';
@@ -23,8 +25,11 @@ const FlareSpace = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [dontShowTutorialAgain, setDontShowTutorialAgain] = useState(false);
 
+  // Reset trigger state
+  const [resetTrigger, setResetTrigger] = useState(0);
+
   const cursor = useCursorTracking(containerRef);
-  const flares = useOptimizedFlarePhysics(config, cursor);
+  const flares = useOptimizedFlarePhysics(config, cursor, resetTrigger);
 
   // Handle sort mode toggle and show tutorial if needed
   const handleSortModeToggle = (checked: boolean) => {
@@ -42,6 +47,10 @@ const FlareSpace = () => {
 
   const handleDontShowAgain = (checked: boolean) => {
     setDontShowTutorialAgain(checked);
+  };
+
+  const handleReset = () => {
+    setResetTrigger(prev => prev + 1);
   };
 
   // Viewport culling - only render flares that are visible
@@ -114,13 +123,26 @@ const FlareSpace = () => {
         } : {})
       }}
     >
-      {/* Sort Mode Toggle */}
-      <div className="absolute top-4 right-4 z-50 flex items-center space-x-3 bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-        <span className="text-white text-sm font-medium">Sort Mode</span>
-        <Switch
-          checked={config.sortMode}
-          onCheckedChange={handleSortModeToggle}
-        />
+      {/* Top Right Controls */}
+      <div className="absolute top-4 right-4 z-50 flex items-center space-x-3">
+        {/* Reset Button */}
+        <Button
+          onClick={handleReset}
+          variant="outline"
+          size="icon"
+          className="bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-white/10 hover:text-white"
+        >
+          <RotateCcw size={20} />
+        </Button>
+
+        {/* Sort Mode Toggle */}
+        <div className="flex items-center space-x-3 bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+          <span className="text-white text-sm font-medium">Sort Mode</span>
+          <Switch
+            checked={config.sortMode}
+            onCheckedChange={handleSortModeToggle}
+          />
+        </div>
       </div>
 
       {/* Sort Mode Tutorial Dialog */}

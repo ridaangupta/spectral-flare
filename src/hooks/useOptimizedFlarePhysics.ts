@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FlareData, FlareConfig, CursorData } from '../types/flare';
 
-export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareData[] => {
+export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData, resetTrigger?: number): FlareData[] => {
   const [flares, setFlares] = useState<FlareData[]>([]);
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
@@ -87,13 +87,13 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
     return dx * dx + dy * dy;
   };
 
-  // Initialize flares when config changes
+  // Initialize flares when config changes or reset is triggered
   useEffect(() => {
     const count = getFlareCount(config.density);
     const newFlares = Array.from({ length: count }, (_, i) => createFlare(i));
     setFlares(newFlares);
     updateSpatialGrid(newFlares);
-  }, [config.density, config.type, config.colorProfile, config.size, config.sortMode, updateSpatialGrid]);
+  }, [config.density, config.type, config.colorProfile, config.size, config.sortMode, resetTrigger, updateSpatialGrid]);
 
   // Optimized animation loop with delta time and throttling
   useEffect(() => {
