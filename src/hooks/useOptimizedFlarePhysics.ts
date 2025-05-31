@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FlareData, FlareConfig, CursorData } from '../types/flare';
 
@@ -11,12 +10,12 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
 
   const getFlareCount = (density: string): number => {
     switch (density) {
-      case 'minimal': return 64 + Math.floor(Math.random() * 40);
-      case 'light': return 120 + Math.floor(Math.random() * 88);
-      case 'moderate': return 240 + Math.floor(Math.random() * 128);
-      case 'dense': return 400 + Math.floor(Math.random() * 168);
-      case 'extreme': return 640 + Math.floor(Math.random() * 168);
-      default: return 240;
+      case 'minimal': return 40 + Math.floor(Math.random() * 20);
+      case 'light': return 80 + Math.floor(Math.random() * 20);
+      case 'moderate': return 120 + Math.floor(Math.random() * 20);
+      case 'dense': return 160 + Math.floor(Math.random() * 20);
+      case 'extreme': return 200 + Math.floor(Math.random() * 20);
+      default: return 120;
     }
   };
 

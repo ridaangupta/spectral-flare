@@ -11,11 +11,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ config, onChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const densityOptions = [
-    { value: 'minimal', label: 'Minimal', count: '64-104' },
-    { value: 'light', label: 'Light', count: '120-208' },
-    { value: 'moderate', label: 'Moderate', count: '240-368' },
-    { value: 'dense', label: 'Dense', count: '400-568' },
-    { value: 'extreme', label: 'Extreme', count: '640-808' }
+    { value: 'minimal', label: 'Minimal', count: '40-60' },
+    { value: 'light', label: 'Light', count: '80-100' },
+    { value: 'moderate', label: 'Moderate', count: '120-140' },
+    { value: 'dense', label: 'Dense', count: '160-180' },
+    { value: 'extreme', label: 'Extreme', count: '200-220' }
   ];
 
   const typeOptions = [
