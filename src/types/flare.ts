@@ -30,5 +30,8 @@ export interface FlareConfig {
 export interface CursorData {
   x: number;
   y: number;
+  vx: number;
+  vy: number;
   isMoving: boolean;
+  pressure: number;
 }
