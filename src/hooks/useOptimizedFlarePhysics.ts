@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FlareData, FlareConfig, CursorData } from '../types/flare';
 
@@ -22,12 +21,12 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
 
   const getSensitivityMultiplier = (sensitivity: string): number => {
     switch (sensitivity) {
-      case 'subtle': return 0.5;
-      case 'responsive': return 1.0;
-      case 'dynamic': return 1.5;
-      case 'intense': return 2.5;
-      case 'chaotic': return 4.0;
-      default: return 1.0;
+      case 'subtle': return 1.0; // Increased from 0.5
+      case 'responsive': return 1.8; // Increased from 1.0
+      case 'dynamic': return 2.5; // Increased from 1.5
+      case 'intense': return 3.5; // Increased from 2.5
+      case 'chaotic': return 5.0; // Increased from 4.0
+      default: return 1.8;
     }
   };
 
@@ -72,7 +71,7 @@ export const useOptimizedFlarePhysics = (config: FlareConfig, cursor: CursorData
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 2,
       colorIndex: Math.floor(Math.random() * colorRange),
-      sensitivity: 0.7 + Math.random() * 0.3,
+      sensitivity: 1.0 + Math.random() * 0.5, // Increased base sensitivity from 0.7
       attractionRadius: 150 + Math.random() * 100,
       repulsionRadius: 80 + Math.random() * 40,
       autonomy: 0.3 + Math.random() * 0.4,

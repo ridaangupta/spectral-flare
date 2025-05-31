@@ -70,6 +70,24 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
       ? Math.min(1, data.intensity * intensityMultiplier)
       : Math.min(1, data.intensity * intensityMultiplier);
     
+    // Reduced blur for cleaner edges, especially for plasma and nebula types
+    const getBlurAmount = (type: string, influence: number) => {
+      switch (type) {
+        case 'plasma':
+          return Math.max(0, 0.5 - influence * 0.5); // Reduced from 2
+        case 'nebula':
+          return Math.max(0, 0.8 - influence * 0.8); // Reduced from 2
+        case 'electric':
+          return Math.max(0, 1 - influence * 1);
+        case 'liquid':
+          return Math.max(0, 1.2 - influence * 1.2);
+        case 'crystal':
+          return 0; // No blur for crystal
+        default:
+          return Math.max(0, 1 - influence * 1);
+      }
+    };
+    
     return {
       position: 'absolute' as const,
       left: data.x - (baseSize * sizeMultiplier * data.scale) / 2,
@@ -79,7 +97,7 @@ const OptimizedFlare: React.FC<OptimizedFlareProps> = ({ data, config, cursor, i
       opacity: finalIntensity,
       transform: `translate3d(0, 0, 0) rotate(${data.rotation}deg) scale(${1 + influence * 0.3})`,
       background: getFlareBackground(config.type, primaryColor, secondaryColor),
-      filter: `blur(${Math.max(0, 2 - influence * 2)}px) brightness(${1 + influence * 0.5})`,
+      filter: `blur(${getBlurAmount(config.type, influence)}px) brightness(${1 + influence * 0.5})`,
       borderRadius: getFlareShape(config.type),
       pointerEvents: 'none' as const,
       zIndex: Math.floor(data.intensity * 10),
