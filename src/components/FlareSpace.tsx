@@ -5,13 +5,17 @@ import { Button } from './ui/button';
 import OptimizedFlare from './OptimizedFlare';
 import ControlPanel from './ControlPanel';
 import SortModeTutorial from './SortModeTutorial';
+import MobileWarning from './MobileWarning';
 import { useOptimizedFlarePhysics } from '../hooks/useOptimizedFlarePhysics';
 import { useCursorTracking } from '../hooks/useCursorTracking';
+import { useIsMobile } from '../hooks/use-mobile';
 import { FlareConfig } from '../types/flare';
 import { getMutedBackgroundColors } from '../utils/flareUtils';
 
 const FlareSpace = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  
   const [config, setConfig] = useState<FlareConfig>({
     density: 'moderate',
     type: 'plasma',
@@ -104,6 +108,10 @@ const FlareSpace = () => {
     const rafId = requestAnimationFrame(measureFPS);
     return () => cancelAnimationFrame(rafId);
   }, [flares.length, visibleFlares]);
+
+  if (isMobile) {
+    return <MobileWarning />;
+  }
 
   return (
     <div 
