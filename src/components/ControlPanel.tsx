@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { FlareConfig } from '../types/flare';
@@ -12,11 +11,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ config, onChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const densityOptions = [
-    { value: 'minimal', label: 'Minimal', count: '8-12' },
-    { value: 'light', label: 'Light', count: '15-25' },
-    { value: 'moderate', label: 'Moderate', count: '30-45' },
-    { value: 'dense', label: 'Dense', count: '50-70' },
-    { value: 'extreme', label: 'Extreme', count: '80-100' }
+    { value: 'minimal', label: 'Minimal', count: '64-104' },
+    { value: 'light', label: 'Light', count: '120-208' },
+    { value: 'moderate', label: 'Moderate', count: '240-368' },
+    { value: 'dense', label: 'Dense', count: '400-568' },
+    { value: 'extreme', label: 'Extreme', count: '640-808' }
   ];
 
   const typeOptions = [

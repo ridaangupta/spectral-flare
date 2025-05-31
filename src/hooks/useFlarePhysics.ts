@@ -7,12 +7,12 @@ export const useFlarePhysics = (config: FlareConfig, cursor: CursorData): FlareD
 
   const getFlareCount = (density: string): number => {
     switch (density) {
-      case 'minimal': return 16 + Math.floor(Math.random() * 10);
-      case 'light': return 30 + Math.floor(Math.random() * 22);
-      case 'moderate': return 60 + Math.floor(Math.random() * 32);
-      case 'dense': return 100 + Math.floor(Math.random() * 42);
-      case 'extreme': return 160 + Math.floor(Math.random() * 42);
-      default: return 60;
+      case 'minimal': return 64 + Math.floor(Math.random() * 40);
+      case 'light': return 120 + Math.floor(Math.random() * 88);
+      case 'moderate': return 240 + Math.floor(Math.random() * 128);
+      case 'dense': return 400 + Math.floor(Math.random() * 168);
+      case 'extreme': return 640 + Math.floor(Math.random() * 168);
+      default: return 240;
     }
   };
 
