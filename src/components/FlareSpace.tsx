@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Switch } from './ui/switch';
 import OptimizedFlare from './OptimizedFlare';
 import ControlPanel from './ControlPanel';
+import SortModeTutorial from './SortModeTutorial';
 import { useOptimizedFlarePhysics } from '../hooks/useOptimizedFlarePhysics';
 import { useCursorTracking } from '../hooks/useCursorTracking';
 import { FlareConfig } from '../types/flare';
@@ -18,8 +19,30 @@ const FlareSpace = () => {
     sortMode: false
   });
 
+  // Tutorial state
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [dontShowTutorialAgain, setDontShowTutorialAgain] = useState(false);
+
   const cursor = useCursorTracking(containerRef);
   const flares = useOptimizedFlarePhysics(config, cursor);
+
+  // Handle sort mode toggle and show tutorial if needed
+  const handleSortModeToggle = (checked: boolean) => {
+    setConfig(prev => ({ ...prev, sortMode: checked }));
+    
+    // Show tutorial when enabling sort mode (if user hasn't opted out)
+    if (checked && !dontShowTutorialAgain) {
+      setShowTutorial(true);
+    }
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+  };
+
+  const handleDontShowAgain = (checked: boolean) => {
+    setDontShowTutorialAgain(checked);
+  };
 
   // Viewport culling - only render flares that are visible
   const visibleFlares = useMemo(() => {
@@ -96,9 +119,16 @@ const FlareSpace = () => {
         <span className="text-white text-sm font-medium">Sort Mode</span>
         <Switch
           checked={config.sortMode}
-          onCheckedChange={(checked) => setConfig(prev => ({ ...prev, sortMode: checked }))}
+          onCheckedChange={handleSortModeToggle}
         />
       </div>
+
+      {/* Sort Mode Tutorial Dialog */}
+      <SortModeTutorial
+        isOpen={showTutorial}
+        onClose={handleTutorialClose}
+        onDontShowAgain={handleDontShowAgain}
+      />
 
       {/* Optimized flares with viewport culling */}
       {visibleFlares.map(({ flare, isVisible }) => (
