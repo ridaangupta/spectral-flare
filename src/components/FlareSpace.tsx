@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { Switch } from './ui/switch';
@@ -5,6 +6,7 @@ import { Button } from './ui/button';
 import OptimizedFlare from './OptimizedFlare';
 import ControlPanel from './ControlPanel';
 import SortModeTutorial from './SortModeTutorial';
+import SortSuccessModal from './SortSuccessModal';
 import MobileWarning from './MobileWarning';
 import { useOptimizedFlarePhysics } from '../hooks/useOptimizedFlarePhysics';
 import { useCursorTracking } from '../hooks/useCursorTracking';
@@ -29,15 +31,59 @@ const FlareSpace = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [dontShowTutorialAgain, setDontShowTutorialAgain] = useState(false);
 
+  // Sort success state
+  const [showSortSuccess, setShowSortSuccess] = useState(false);
+  const [hasShownSuccessForCurrentSort, setHasShownSuccessForCurrentSort] = useState(false);
+
   // Reset trigger state
   const [resetTrigger, setResetTrigger] = useState(0);
 
   const cursor = useCursorTracking(containerRef);
   const flares = useOptimizedFlarePhysics(config, cursor, resetTrigger);
 
+  // Check if all flares are sorted in their correct quadrants
+  const checkSortCompletion = useMemo(() => {
+    if (!config.sortMode || flares.length === 0) return false;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const centerX = viewportWidth / 2;
+    const centerY = viewportHeight / 2;
+
+    // Define quadrants based on color index
+    const isInCorrectQuadrant = (flare: any) => {
+      const isLeft = flare.x < centerX;
+      const isTop = flare.y < centerY;
+      
+      // Quadrant mapping: 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
+      if (flare.colorIndex === 0) return isLeft && isTop;     // Top-left
+      if (flare.colorIndex === 1) return !isLeft && isTop;   // Top-right
+      if (flare.colorIndex === 2) return isLeft && !isTop;   // Bottom-left
+      if (flare.colorIndex === 3) return !isLeft && !isTop;  // Bottom-right
+      
+      return false;
+    };
+
+    return flares.every(isInCorrectQuadrant);
+  }, [config.sortMode, flares]);
+
+  // Show success modal when sorting is complete
+  useEffect(() => {
+    if (checkSortCompletion && !hasShownSuccessForCurrentSort) {
+      // Add a small delay to make the success feel more natural
+      const timer = setTimeout(() => {
+        setShowSortSuccess(true);
+        setHasShownSuccessForCurrentSort(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [checkSortCompletion, hasShownSuccessForCurrentSort]);
+
   // Handle sort mode toggle and show tutorial if needed
   const handleSortModeToggle = (checked: boolean) => {
     setConfig(prev => ({ ...prev, sortMode: checked }));
+    setHasShownSuccessForCurrentSort(false);
     
     // Show tutorial when enabling sort mode (if user hasn't opted out)
     if (checked && !dontShowTutorialAgain) {
@@ -55,6 +101,13 @@ const FlareSpace = () => {
 
   const handleReset = () => {
     setResetTrigger(prev => prev + 1);
+    setHasShownSuccessForCurrentSort(false);
+    setShowSortSuccess(false);
+  };
+
+  const handleTryAgain = () => {
+    setShowSortSuccess(false);
+    handleReset();
   };
 
   // Viewport culling - only render flares that are visible
@@ -158,6 +211,12 @@ const FlareSpace = () => {
         isOpen={showTutorial}
         onClose={handleTutorialClose}
         onDontShowAgain={handleDontShowAgain}
+      />
+
+      {/* Sort Success Modal */}
+      <SortSuccessModal
+        isOpen={showSortSuccess}
+        onTryAgain={handleTryAgain}
       />
 
       {/* Optimized flares with viewport culling */}
