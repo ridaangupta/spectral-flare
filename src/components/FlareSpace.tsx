@@ -247,6 +247,21 @@ const FlareSpace = () => {
 
       {/* Control Panel */}
       <ControlPanel config={config} onChange={setConfig} />
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        <p className="text-white/40 text-sm">
+          Created by{' '}
+          <a
+            href="https://www.linkedin.com/in/ridaan-gupta-51966b305/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white/60 transition-colors duration-200 underline decoration-white/20 hover:decoration-white/40"
+          >
+            Ridaan Gupta
+          </a>
+        </p>
+      </footer>
     </div>
   );
 };
